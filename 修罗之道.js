@@ -1,6 +1,25 @@
-// 高阶组件--本质是一个函数, 参数接收组件, 返回一个新组件, 有传两个参的有传一个参的--常见的有:
-//Form.create()(ComponentName)                    // 表单验证三部曲: 1、创建路由组件四大属性form
-// {getFieldDecorator( 'password', {rules:[]} )( <input type="password" onChange={this.handleChange('password')}/> )}
+// 高阶函数：1、变量是函数   2、返回是函数
+
+// 高阶组件--本质是一个函数, 参数接收组件, 返回一个新组件, 
+//  两个参的:
+//        Form.create()(ComponentName)                    // 表单验证三部曲: 1、创建路由组件四大属性form
+//        {getFieldDecorator( 'password', {rules:[]} )( <input type="password" onChange={this.handleChange('password')}/> )}
+//        react-reudx的connect、用来合并创建action和dispatch通过属性传给要用的组件：export default connect((state) => ({num: state}),{ increment, decrement, incrementAsync, error })(Counter) // 这里是直接传,而不是组件的方式来传
+// 
+
+// |##1、谈谈虚拟DOM的diff算法
+// *作用：减少重排重绘次数，最小化页面重排重绘
+// *tree diff
+// *只针对同级/同层节点进行比较。
+// *如果父节点不一样，就直接移除父节点和所有子节点，替换成新的*问题：如果有跨层级的节点移动，性能较差。不建议开发者这样做
+// *component diff
+// *如果是相同类型的组件，在对里面的结构进行tree diff，
+// *如果不同类型，就不进行比较，直接替换成新的
+// *element diff
+// *同一层级遍历的元秦添加一个唯一的key属性，发生位置变化时比较key来增删节点 
+// 
+// *总结：不建议往开头添加元素、尽量保持稳定DOM结构
+
 
 /**
  * 脚手架:
@@ -59,14 +78,19 @@
 
 
 /**
+ * 普通组件： export default function App(){return <div> </div>} 不使用state和prop用工厂函数 ( 没有render(){})
+ * 类组件: class Login extends Component{ render(){return xxx} }
  * 
- * // webStorm简写: imp
  * 
- * import React,{Component} from 'react';
+ *                                                             ***1)props---父子组件通信***
+ * // webStorm简写: imp                                         ***2)消息订阅---兄弟组件，祖孙组件***
+ *                                                                    PubSub.subscribe('ADD_COMMENT', function(msg，data){ }); //订阅，注意大写，msg是'ADD_COMMENT'
+ * import React,{Component} from 'react';                             PubSub.publish(' ADD_COMMENT ', data) //发布消息
+ * import { publish, subscribe } from 'pubsub-js';    ------    ***3)redux***
  * import PropTypes from 'prop-types';
  * import { BrowserRouter, Link, NavLink, Route, Redirect, Switch, withRouter } from 'react-router-dom';  //  Link		      ---	改变url，不刷新页面（单页面）（a标签多页面）                        -- <Link to="/xxx">xxx</Link>
- *	                                                                                                          NavLink	      ---	改变url ***能改变class自定义样式：activeClassName="my-active"***   -- <NavLink to="/xxx" className="navItem" activeClassName="on" >
- *	                                                                                                          Route	        --- 注册路由，根据路径改变component                                    -- <Route path="/xxx" component={yyy}/>
+ *	                                                                                                          NavLink	      ---	改变url ***能改变选中样式：activeClassName="my-active"***         -- <NavLink to="/xxx" className="navItem" activeClassName="on" > **(样式给不上考虑是否是里面嵌套了标签，这个标签导致样式没有给上)**
+ *	                                                                                                          Route	        --- 注册路由，根据路径改变component                                    -- <Route path="/xxx" component={yyy}/> (路径为"/"的放最后,不然会一直匹配上)
  *	                                                                                                          Redirect      --- 重定向（用于设置默认组件）                                          -- <Redirect to='/xxx'/>
  *	                                                                                                          Switch        --- 用来包住Route、 Redirect，值运行其中一个
  *                                                                                                            withRouter    --- 高阶组件，给非路由组件传递路由组件的三大属性                           -- export default withRouter(componentName)
@@ -78,16 +102,18 @@
  * class ComponentName extends Component{
  * 
  *    static propTypes = {                                          // ***接收属性***       --this.props.xxx读取属性 (不可修改)(string、func、object)
- *       xxx: PropTypes.bool.isRequired,
+ *       xxx: PropTypes.bool.isRequired,                                                    
  *     };
  * 
+ *    createRef = React.createRef()                                 // ***ref***          --1.创建creatRef 2.html加上 3.使用this.createRef.current ***[this.createRef.current.value能拿表单数据，e.target.value也能, 但e.target.value有限制条件,事件必须在input上才可以]***
+ *                                                                                        --受控组件代替ref  state+onChange=handleChange()、用到e.target.value
  * 
  *    state={};                                                     // ***状态数据***       --this.state.xxx读取状态  --this.setState(xxx:yyy)修改状态
  *    
  * 
- *    handleChange = (option) => {                                  // ***事件***          --注意写法是等于一个函调函数，接受参数且要用event, 就用这种return的方法  
+ *    handleChange = (option) => {                                  // ***事件***          --注意写法是 等于 一个回调函数 ，接受参数且要用event, 就用这种return的方法  
  *        return (e) => {
- *            this.setState({                                       // ***修改数据***
+ *            this.setState({                                       // ***更新数据***       --异步
  *              [option]: e.target.value
  *            })
  *        }
@@ -95,17 +121,20 @@
  * 
  *    
  *    constructor(){}             componentWillReceiveProps(){}     // ***生命周期*** ( componentDidMount-发请求、componentWillUnmount-删定时器、ajax请求)
- *    componentWillMount(){}      shouldComponentUpdate(){}
- *    componentDidMount(){}       componentWillUpdate(){}
- *                                componentDidUpdate(){}
- *    componentWillUnmount(){}
+ *    componentWillMount(){}      shouldComponentUpdate(){}                                                     | **1 // 卸载异步操作设置状态**
+ *    componentDidMount(){}       componentWillUpdate(){}                                                       | componentWillUnmount(){    
+ *                                componentDidUpdate(){}                                                        |     this.setState = (state, callback) => {
+ *    componentWillUnmount(){}                                                                                  |         return;
+ *                                                                                                              |     }
+ *                                                                                                              | }
+ *    
  * 
  * ***\\\\\\\\\\\\\\\\\\\\\表单验证套路代码\\\\\\\\\\\\\\\\\\\\\\\\\\\\***
  * 
  *   handleSubmit = (e) => {
  *      e.preventDefault();
  * 
- *      this.props.form.validateFields(async (errors, value) => { 
+ *      this.props.form.validateFields(async (errors, value) => { // 如果rules验证规则空着，这里会直接跳过不运行！！
  *        if(!errors) {
  *          const { username, password } = value;                 // 拿数据
  *          const result = await reqLogin(username, password);    // 发请求
@@ -113,7 +142,7 @@
  *          if(result) {
  *            this.props.history.replace('/')
  *          }else {
- *            this.props.form.resetFields(['password']);        // 清空内容~
+ *            this.props.form.resetFields(['password']);          // 清空内容~
  *          }
  *        }else {
  *          console.log('表单校验失败' + errors)
@@ -123,7 +152,7 @@
  * 
  *    
  *    validator = (rule, value, callback) => {
- *        // 增强复用性
+ *        // 增强复用性**rule是一个对象，存了getFieldDecorator里面的名字**
  *        const name = rule.fullfield === 'username' ? '用户名' : '密码'
  *  
  *       if(!value) {
@@ -146,11 +175,16 @@
  *        **⒉** 
  *        const { getFieldDecorator } = this.props.form;
  * 
- *        return <div>
+ * 
+ *                ***Fragment不会生成DOM 节点, 仅有包裹作用***
+ *        return <React.Fragment> 
  *  
- *            // ***基础语法***
- *            <div clssName="box1 on"></div>
- *            <div clssName={this.state.xxx?'on':''} style={{fontSize: '16px'}}> {this.state.hellow} </div> // 样式-小驼峰
+ *            // ***基础语法***[大括号包裹js代码]
+ *            <div clssName="box1 on" style={{fontSize: '16px'}}></div>               // 设置class、style[小驼峰]
+ *            <div clssName={this.state.xxx?'box1 on':'box1'} > {this.state.hellow} </React.Fragment>     // 使用状态数据
+ *            <div xxx=xxx yyy={...obj}></div>  // 传props
+ *            <div xxx={this.abc}></div>        // props属性使用  -- this.abc
+ *            <div ref={this.createRef}></div>  // ref使用
  * 
  *            ***路由的使用***
  *            // 一级路由   -------------------------------------------------------------   二级路由：
@@ -159,7 +193,7 @@
  *            <Switch>
  *                <Route path="/login" component={Login} />   --------------------------    在Login组件里面写 <Link to="/login/phone"/>
  *                <Redirect to="/home/messages"/>                                                            <Route path="/login/phone" component={Phone} />
- *            </Switch>
+ *            </Switch>                                                                                      <Redirect to="/login/phone" />  自动选中phone
  * 
  *            ***事件的使用***
  *            // 事件的使用
@@ -169,7 +203,7 @@
  *                {
  *                    getFieldDecorator( 
  *                        'password', {
- *                            initialValue: '0' ***1 // 设置组件默认值, 组件放到第二个参数后, 组件的默认选中属性会失效(删掉) 如:antd的 Slect组件 defaultvalue="0"***
+ *                            initialValue: '0' ***1 // 设置组件默认值, 组件放到第二个参数后, 组件的默认选中属性会失效(删掉) 如:antd的 Slect组件 defaultvalue="0"、inputNumber的defaultValue***
  *                            rules:[{ validator: this.validator }]
  *                        } 
  *                    )( <input type="password" onChange={this.handleChange('password')}/> )
@@ -179,8 +213,18 @@
  *            ***图片的使用***
  *            // 图片必须引入才会打包
  *            <img src={logo} />
- *            
- *        </div> 
+ * 
+ *            ***动态遍历生成结构***
+ *            {
+ *              // 记得写key, { 另一种方法: 遍历生成写在componentWillMount(){},并用this.xx保存起来,html直接{this.xx}使用 用于值初始化渲染一次的结构}
+ *              this.state.arr===0?'':this.state.arr.map((item, index) => { return <div key={index}> item.keyname <React.Fragment> })  // **数据改变，结构增加/减少 ，但不会整个页面重新渲染，（因为有虚拟DOM算法）**
+ *            }
+ * 
+ *            ***动态使用组件***
+ *            {
+ *              this.props.location.pathname === '/u/login'?'': <Nav />
+ *            }
+ *        </React.Fragment> 
  *    }
  * }
  * 
@@ -221,8 +265,9 @@
  *                | index.html
  * 
  *        | src文件夹
- *                | components文件夹
- *                | pages文件夹
+ *                | assets文件夹        ---   公共css、img
+ *                | components文件夹    ---   普通组件
+ *                | pages文件夹         ---   路由组件
  *                        | home文件夹
  *                                | images文件夹
  *                                | index.jsx       *** // 引入路径写到文件夹(会自动引入index.jsx)**
@@ -230,6 +275,10 @@
  *                | App.jsx
  *                | index.js
  * 
+ *        | package.json      ---☆发送请求会遇到**跨域问题**，用代理服务器解决：
+ *                                 代码先发到本地代理服务器3000，然后转发到服务器5000
+ *                                 在package.json里面加"proxy": "http://localhost:5000"
+ *
  * 
  * 
  * index.js：
@@ -309,12 +358,32 @@
   * import { Button, Form, Icon, Layout } from 'antd';
   * 
   *                 使用                                                  其他
+  *   Upload  ---  上传图片(具体看文件)
+  *   Tree    ---  Tree树形控件                                 ---  defaultExpandA11 默认展开所有树节点(使用时要注释的配置)  --- // onExpand={this.onExpand}
+  *                                                                                                                           // expandedkeys={this.state.expandedkeys}
+  *                                                                                                                           // autoExpandParent={this.state.autoExpandParent}
   *   Form    ---  复制删改                                     ---  往下拉有this.props.form的方法(具体看上面的三部曲)
+  * 
+  *                                                                 ●设置Form里面Item的大小 (使用:  设置给Form/Form.Item ---  <Form {...formItemLayout}></Form>            )
+  *                                                                                                                         <Form.Item {...formItemLayout}></Form.Item>
+  *                                                                                                                         <Form.Item wrapperCol={{span: 5}}></Form.Item>
+  *                                                                     const formItemLayout = {                            
+  *                                                                       labelCol: {             // 设置Form.Item的大小
+  *                                                                         xs: { span: 24 }, // 移动端(栅栏布局--分成了24份)
+  *                                                                         sm: { span: 5 },  // 平板
+  *                                                                       },
+  *                                                                       wrapperCol: {           // 设置Form.Item里面元素的大小
+  *                                                                         xs: { span: 24 },
+  *                                                                         sm: { span: 12 },
+  *                                                                       },
+  *                                                                     };
+  * 
   *   Layout  ---  复制删改                                     ---  defaultSelectedKeys默认选中的key
   *   Icon    ---  <Icon type="star" />
   *   Button  ---  <Button type="primary">Primary</Button>
   *   Message ---  复制                                         ---  全局提示
   *   Select  ---  复制                                         ---  选择器(下拉框等)
+  *   级联选择 ---  /                                           ---   一层一层的选    ---  onchang删了，使用loadData就可以了
   *   Modal   ---  复制删改                                     ---  对话框(确认取消)(弹窗填数据)
   *                                                                       <Modal title="添加分类”
   *                                                                           visible={isshowAddcategory}
@@ -330,7 +399,9 @@
   *                                                                        pageSizeOptions     每页多少条                [10, 20, 30, 40]
   *                                                                        defaultPageSize     默认的每页条数             10
   *                                                                        showQuickJumper     快速跳转至某页             true/false
-  * 
+  *                                                                        total               设置数据总量               number                    ***用在后台分页***
+  *                                                                        onChange            页码改变的回调             function(page, pageSize)  ***用在后台分页***                
+  *                                                                        onShowSizeChange    一页显示数量改变的回调      function(page, pageSize)  ***用在后台分页***                
   *   Table   ---  复制删改                                     ---  (选带边框的) **最后的api里面有pagination这个属性，分页**
   * 
   * render(){
@@ -341,7 +412,7 @@
   *               dataIndex: **'dataName'**,  // 名字要对应上才会显示，尤其data数动态的,像显示就必须dataName对上
   *               className: 'col',           // (可不加, 改样式的)
   *               // ***改变列显示***
-  *                 ***text是当前行的对象[使用的时候需要把dataIndex注释掉]***
+  *                 ***text是当前行的对象[使用的时候需要把dataIndex注释掉,不然获取的是dataName的值]***
   *               render: text => { return <a href="javascript:;">{text}</a> },
   *             },
   *             {...}，{...}
@@ -367,8 +438,28 @@
   *            loading="true"     ---    加载时转圈
   *          />
   * 
-  * 
   * }
   * 
+  * 
+  * // **webpack会在index.html加入打包好的js文件和css文件**
+  * 
+  * // React有一个fiber算法，将多次请求合并成一次来优化
+  * // 移除DOM节点下的组件：ReactDOM.unmountComponentAtNode(document.getElementById('example'))
+  * // 包 间接 引用会有波浪线, package.json的依赖手动加入就可以有提示且没有波浪线
+  * // 在constructor里使用用props，构造方法里传形参props,   constructor( props ){ super(props); ....... }
+  * 
+  * 
+  *   项目打包：
+  *         1）	npm run build或yarn build打包
+  *         2）	通过命令serve -s build -p 3003 开启一个端口号为3003的服务器，打开build里的项目，默认打开index.html
+  *         要在服务器运行的原因是:  webpack导入的script和css文件的路径都是网络路径/xxx/yyy，所以要用serve
+  *         3）	解决跨域问题：1.放在服务器的public暴露文件夹下，直接url访问
+  *                          2. 请求前都写绝对地址，通过定义const prefix = process.env.NODE_ENV === ‘development’ ？ ‘’ ： ‘http://localhost:5000’
+  *         4）	process.env.NODE_ENV:运行yarn start 是development ，运行yarn build是production
+  *         5）打包后可删除
+  *               static/asset-mainifest.json       --PWA相关
+  *                     /precache-mainfestxxxx.js
+  *                     /service-worker.js
+  *               css/xxxxxxxxx.css.map             --调试问题的
   * 
   */
