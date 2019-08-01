@@ -29,6 +29,24 @@
  *      ● 写好index.js和App.jsx、引入reset.css (assets/less)
  *      
  *      ● 下包
+ *            ▁react配置使用stylus
+ *                      yarn add stylus stylus-loader
+ * 
+ *                      1. run eject(最好是刚安装好脚手架就运行，一旦里面任何文件发生修改，运行程序就会报错)
+ *                                  报错解决办法：git add .  、  git commit -m "neirong"
+ *                      2. 找到config文件下的webpack.config.js，搜索file-loader，在后面加上stylus
+ *                                  exclude: [/\.(js|mjs|jsx|ts|tsx)$/, /\.html$/, /\.json$/,/\.styl$/,/\.less$/],
+ *                      3. 然后再在oneOf的最后面加上
+ *                                  {
+ *                                     test: /\.styl$/,
+ *                                     use: [
+ *                                       require.resolve('style-loader'),
+ *                                       require.resolve('css-loader'),
+ *                                       require.resolve('stylus-loader')
+ *                                     ]
+ *                                  }
+ *                      4. 运行报错没有xxx module，把包都删了，用npm install重下一遍
+ * 
  *            ▁引入antd, 按需加载
  *                      yarn add antd
  *                      yarn add react-app-rewired customize-cra babel-plugin-import –dev
