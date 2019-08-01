@@ -26,5 +26,16 @@
  * 
  * 
  * 
+ * 功能: 滚动到底部
+ *          window.addEventListener('scroll', () => {} )                            // 添加滚动事件
+ *          
+ *          // 回调里获取(正常: scrollHeight = clientHeight + scrollTop)
+ *          let clientHeight = document.documentElement.clientHeight;               // 视口的高度
+ *          let scrollTop = Math.round(document.documentElement.scrollTop);         // 滚动后, div在视口上面的高度(存在误差(小数)，所以加上了四拾伍入)
+ *          let scrollHeight = document.documentElement.scrollHeight;               // 整个页面的高度
+ *          
+ *          if(scrollHeight - clientHeight - scrollTop <= 1){ console.log("滚动到底部了") }   // 判断是否到底部
+ * 
+ * 
  * 
  */

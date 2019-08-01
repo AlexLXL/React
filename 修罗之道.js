@@ -234,6 +234,8 @@
  * 
  *            ***动态遍历生成结构***
  *            {
+ *              // 用map的原因, 生成一个数组，数组里面存的是虚拟DOM对象，数组放在这里会自动展开  **( 虚拟DOM对象 {$$typeof:Symbol(react.element),type:"div",key:"0",ref:null,props:{},.…})**
+ *                  ★ 这里有一个比较特别的, 用forEach手动返回 不会生成虚拟DOM对象，会变成undefined
  *              // 记得写key, { 另一种方法: 遍历生成写在componentWillMount(){},并用this.xx保存起来,html直接{this.xx}使用 用于值初始化渲染一次的结构}
  *              this.state.arr===0?'':this.state.arr.map((item, index) => { return <div key={index}> item.keyname <React.Fragment> })  // **数据改变，结构增加/减少 ，但不会整个页面重新渲染，（因为有虚拟DOM算法）**
  *            }
@@ -465,6 +467,7 @@
   * // 移除DOM节点下的组件：ReactDOM.unmountComponentAtNode(document.getElementById('example'))
   * // 包 间接 引用会有波浪线, package.json的依赖手动加入就可以有提示且没有波浪线
   * // 在constructor里使用用props，构造方法里传形参props,   constructor( props ){ super(props); ....... }
+  * // React 没有Vue的 keep-alive
   * 
   * 
   *   项目打包：
