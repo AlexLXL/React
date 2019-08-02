@@ -105,7 +105,15 @@
  *                                                                    PubSub.subscribe('ADD_COMMENT', function(msg，data){ }); //订阅，注意大写，msg是'ADD_COMMENT'
  * import React,{Component} from 'react';                             PubSub.publish(' ADD_COMMENT ', data) //发布消息
  * import { publish, subscribe } from 'pubsub-js';    ------    ***3)redux***
- * import PropTypes from 'prop-types';
+ * import PropTypes from 'prop-types'; 
+ * 
+ * 
+ *                                                                                                              | ***react-router-dom 路由传参[query--明文，state--密文]***
+ *                                                                                                              | <Link to={{ pathname: ' /user' , query : { day: 'Friday' }}}>             // query可换state
+ *                                                                                                              | this.props.history.push({ pathname : '/user' ,query : { day: 'Friday'} }) // query可换state
+ *                                                                                                              | this.props.location.query.day                                             // query可换state
+ *                                                                                                              | 
+ *                                                                                                              | this.props.history.replace/push() 也能更改url路径(多用在回调函数中)
  * import { BrowserRouter, Link, NavLink, Route, Redirect, Switch, withRouter } from 'react-router-dom';  //  Link		      ---	改变url，不刷新页面（单页面）（a标签多页面）                        -- <Link to="/xxx">xxx</Link>
  *	                                                                                                          NavLink	      ---	改变url ***能改变选中样式：activeClassName="my-active"***         -- <NavLink to="/xxx" className="navItem" activeClassName="on" > **(样式给不上考虑是否是里面嵌套了标签，这个标签导致样式没有给上)**
  *	                                                                                                          Route	        --- 注册路由，根据路径改变component                                    -- <Route path="/xxx" component={yyy}/> (路径为"/"的放最后,不然会一直匹配上)
@@ -113,8 +121,8 @@
  *	                                                                                                          Switch        --- 用来包住Route、 Redirect，值运行其中一个
  *                                                                                                            withRouter    --- 高阶组件，给非路由组件传递路由组件的三大属性                           -- export default withRouter(componentName)
  *                                                                                                            BrowserRouter --- index.js里 包裹<App />
- * import logo from './logo.png'      // 图片要引入才会打包                                                     this.props.history.replace/push() 也能更改url路径(多用在回调函数中)
- * import './index.less'              // 引入自己的less
+ * import logo from './logo.png'      // 图片要引入才会打包                                                  
+ * import './index.less'              // 引入自己的less                                                                           
  * 
  * 
  * class ComponentName extends Component{
