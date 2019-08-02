@@ -131,9 +131,9 @@
  *                ***Fragment不会生成DOM 节点, 仅有包裹作用***
  *        return <React.Fragment> 
  *  
- *            // ***基础语法***[大括号包裹js代码]
- *            <div clssName="box1 on" style={{fontSize: '16px'}}></div>               // 设置class、style[小驼峰]
- *            <div clssName={this.state.xxx?'box1 on':'box1'} > {this.state.hellow} </React.Fragment>     // 使用状态数据
+ *            // ***基础语法***(没简写)[大括号包裹js代码]
+ *            <div clssName="box1 on" style={{fontSize: '16px'}}></div>                                   // 设置class、style[小驼峰]
+ *            <div clssName={this.state.xxx?'box1 on':'box1'} > {this.state.hellow} </React.Fragment>     // 使用状态数据-属性-内容{}括号里
  *            <div xxx=xxx yyy={...obj}></div>  // 传props
  *            <div xxx={this.abc}></div>        // props属性使用  -- this.abc
  *            <div ref={this.createRef}></div>  // ref使用
