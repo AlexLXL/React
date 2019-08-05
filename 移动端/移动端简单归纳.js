@@ -27,7 +27,8 @@
  * 
  * 
  * 功能: 滚动到底部
- *          window.addEventListener('scroll', () => {} )                            // 添加滚动事件
+ *          // window.addEventListener('scroll', () => {} )                         // 添加滚动事件  ---  浏览器打开的窗口             --- alert() 等价于 window.alert()
+ *          document.addEventListener('scroll', () => {} )                          // 添加滚动事件  ---  document是window对象的一部分 --- document.body 等价于 window.document.body
  *          
  *          // 回调里获取(正常: scrollHeight = clientHeight + scrollTop)
  *          let clientHeight = document.documentElement.clientHeight;               // 视口的高度
@@ -35,6 +36,28 @@
  *          let scrollHeight = document.documentElement.scrollHeight;               // 整个页面的高度
  *          
  *          if(scrollHeight - clientHeight - scrollTop <= 1){ console.log("滚动到底部了") }   // 判断是否到底部
+ * 
+ *          加上防抖 ( 最后一次滑动的时候拿数据 )   ----   能减少滚动多次触发事件
+ *                         this.handleScroll = () => {
+ *                              clearTimeout(timer)
+ *                              timer = setTimeout(async () => {
+ *                                let scrollHeight = document.documentElement.scrollHeight;
+ *                                let scrollTop = Math.round(document.documentElement.scrollTop);
+ *                                let clientHeight = document.documentElement.clientHeight;
+ *                          
+ *                                console.log(scrollHeight - scrollTop - clientHeight);
+ *                          
+ *                                if (scrollHeight - scrollTop - clientHeight <= 1) {
+ *                                  page++;
+ *                                  const result = await reqTopicItem(page, 2);
+ *                          
+ *                                  await result.result.forEach(item => {
+ *                                    // console.log(this);
+ *                                    this.topicList = [...this.topicList, ...item.topics];
+ *                                  });
+ *                                }
+ *                              }, 150);
+ *                          };
  * 
  * 
  * 
